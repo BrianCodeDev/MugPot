@@ -22,3 +22,18 @@ document.querySelector(".jsFilter").addEventListener("click", function () {
   modeSwitch.addEventListener('click', function () {                      document.documentElement.classList.toggle('light');
    modeSwitch.classList.toggle('active');
   });
+
+
+  const myModal = document.getElementById('myModal')
+  const myInput = document.getElementById('myInput')
+  
+  myModal.addEventListener('shown.bs.modal', () => {
+    myInput.focus()
+  })
+  
+  async function forloop() {
+    for(var i = 0; i < 50000; i++){
+      console.log(i);
+    }
+  }
+  forloop();
