@@ -28,18 +28,41 @@ def signup(request):
     else:
         form = SignUpForm()
     return render(request, 'signup.html', {'form': form})
+import datetime
+from django.http import HttpResponse
+
+# Function to log fraudulent activity to HTML file
+def log_fraud(activity):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open('fraud.html', 'a') as f:
+        f.write(f"<p>{timestamp}: {activity}</p>\n")
+
+# Function to detect fraud in form data
+def detect_fraud(task_data):
+    for field, value in task_data.items():
+        if isinstance(value, str) and "fraud" in value.lower():
+            return True
+    return False
+
+
 def index(request):
     if request.method == 'POST':
         # Process the form submission
-        task = Task(
-            task_name=request.POST['task_name'],
-            task_date=request.POST['task_date'],
-            task_status=request.POST['task_status'],
-            task_info=request.POST['task_info'],
-            task_comment=request.POST.get('task_comment', '')  # Use get() to avoid KeyError if task_comment is not in the form
-        )
-        task.save()  # Save the task object to the database
-        return redirect('app-index')  # Redirect to the task change page in Django admin
+        task_data = {
+            'task_name': request.POST['task_name'],
+            'task_date': request.POST['task_date'],
+            'task_status': request.POST['task_status'],
+            'task_info': request.POST['task_info'],
+            'task_comment': request.POST.get('task_comment', '')  # Use get() to avoid KeyError if task_comment is not in the form
+        }
+
+        if detect_fraud(task_data):
+            log_fraud("Fraudulent activity detected in form submission.")
+            return HttpResponse("Fraudulent activity detected and logged.")
+        else:
+            task = Task(**task_data)
+            task.save()  # Save the task object to the database
+            return redirect('app-index')  # Redirect to the task change page in Django admin
     else:
         tasks = Task.objects.all()
         user = request.user
